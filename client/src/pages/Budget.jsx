@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from '../api/axios';
 
 const CATEGORIES = ['Food', 'Transport', 'Rent', 'Shopping', 'Health', 'Education', 'Entertainment', 'Other'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const Budget = () => {
   const [budgets, setBudgets] = useState([]);
@@ -51,34 +52,60 @@ const Budget = () => {
     return 'bg-green-500';
   };
 
-  const getStatusBadge = (status) => {
-    if (status === 'exceeded') return 'bg-red-100 text-red-700';
-    if (status === 'warning') return 'bg-yellow-100 text-yellow-700';
-    return 'bg-green-100 text-green-700';
+  const getStatusStyle = (status) => {
+    if (status === 'exceeded') return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+    if (status === 'warning') return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
+    return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
   };
 
+  const exceeded = budgets.filter(b => b.status === 'exceeded').length;
+  const warning = budgets.filter(b => b.status === 'warning').length;
+  const safe = budgets.filter(b => b.status === 'safe').length;
+
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
+    <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6 transition-colors duration-300">
+
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Budget Tracker</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Budget Tracker</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Set and monitor your monthly spending limits</p>
+        </div>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+          className="bg-green-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-green-600 transition"
         >
           + Set Budget
         </button>
       </div>
 
+      {/* Summary Strip */}
+      {budgets.length > 0 && (
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">🚨 Exceeded</p>
+            <p className="text-2xl font-bold text-red-500">{exceeded}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">⚠️ Warning</p>
+            <p className="text-2xl font-bold text-yellow-500">{warning}</p>
+          </div>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">✅ Safe</p>
+            <p className="text-2xl font-bold text-green-500">{safe}</p>
+          </div>
+        </div>
+      )}
+
       {/* Add Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">Set Monthly Budget</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+          <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">➕ Set Monthly Budget</h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <select
-              name="category"
               value={form.category}
               onChange={e => setForm({ ...form, category: e.target.value })}
-              className="border border-gray-300 rounded-lg px-3 py-2"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
             >
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -88,20 +115,18 @@ const Budget = () => {
               value={form.limitAmount}
               onChange={e => setForm({ ...form, limitAmount: e.target.value })}
               required
-              className="border border-gray-300 rounded-lg px-3 py-2"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
             />
             <select
               value={form.month}
               onChange={e => setForm({ ...form, month: e.target.value })}
-              className="border border-gray-300 rounded-lg px-3 py-2"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
             >
-              {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
-                <option key={i} value={i + 1}>{m}</option>
-              ))}
+              {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
             </select>
             <div className="flex gap-2">
-              <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex-1">Save</button>
-              <button type="button" onClick={() => setShowForm(false)} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex-1">Cancel</button>
+              <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 flex-1 text-sm transition">Save</button>
+              <button type="button" onClick={() => setShowForm(false)} className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl flex-1 text-sm transition">Cancel</button>
             </div>
           </form>
         </div>
@@ -109,45 +134,58 @@ const Budget = () => {
 
       {/* Budget Cards */}
       {loading ? (
-        <div className="text-center text-gray-400 py-12">Loading...</div>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+        </div>
       ) : budgets.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center text-gray-400 shadow-sm">
-          No budgets set for this month. Click "Set Budget" to get started.
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-12 text-center border border-gray-100 dark:border-gray-800">
+          <span className="text-4xl">💰</span>
+          <p className="text-gray-400 mt-2 text-sm">No budgets set for this month.</p>
+          <button onClick={() => setShowForm(true)} className="mt-4 bg-green-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-green-600 transition">
+            Set Your First Budget
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {budgets.map(budget => (
-            <div key={budget._id} className="bg-white rounded-2xl p-6 shadow-sm">
-              <div className="flex justify-between items-start mb-3">
+            <div key={budget._id} className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md transition">
+              <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">{budget.category}</h3>
-                  <p className="text-sm text-gray-500">₹{budget.spent} / ₹{budget.limitAmount}</p>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{budget.category}</h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    ₹{budget.spent.toLocaleString()} spent of ₹{budget.limitAmount.toLocaleString()}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(budget.status)}`}>
+                  <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(budget.status)}`}>
                     {budget.status === 'exceeded' ? '🚨 Exceeded' : budget.status === 'warning' ? '⚠️ Warning' : '✅ Safe'}
                   </span>
-                  <button onClick={() => handleDelete(budget._id)} className="text-red-400 hover:text-red-600 text-sm">Delete</button>
+                  <button onClick={() => handleDelete(budget._id)} className="text-red-400 hover:text-red-600 text-sm transition">✕</button>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 mb-2">
                 <div
-                  className={`h-3 rounded-full transition-all ${getBarColor(budget.status)}`}
+                  className={`h-2.5 rounded-full transition-all duration-500 ${getBarColor(budget.status)}`}
                   style={{ width: `${Math.min(budget.percentage, 100)}%` }}
                 />
               </div>
-              <p className="text-right text-xs text-gray-500 mt-1">{budget.percentage}% used</p>
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+                <span>₹0</span>
+                <span>{budget.percentage}% used</span>
+                <span>₹{budget.limitAmount.toLocaleString()}</span>
+              </div>
 
+              {/* Alert Messages */}
               {budget.status === 'exceeded' && (
-                <div className="mt-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-sm text-red-600">
-                  🚨 You have exceeded your {budget.category} budget by ₹{budget.spent - budget.limitAmount}
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2 text-sm text-red-600 dark:text-red-400">
+                  🚨 Exceeded by ₹{(budget.spent - budget.limitAmount).toLocaleString()}
                 </div>
               )}
               {budget.status === 'warning' && (
-                <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm text-yellow-600">
-                  ⚠️ You have used {budget.percentage}% of your {budget.category} budget
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl px-3 py-2 text-sm text-yellow-600 dark:text-yellow-400">
+                  ⚠️ {budget.percentage}% of budget used — slow down!
                 </div>
               )}
             </div>

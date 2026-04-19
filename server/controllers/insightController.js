@@ -1,13 +1,11 @@
 const Transaction = require('../models/Transaction');
 
-// @GET /api/insights
 const getInsights = async (req, res) => {
   try {
     const userId = req.user.id;
     const now = new Date();
     const insights = [];
 
-    // Last 6 months data
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
     const transactions = await Transaction.find({
       userId,
@@ -25,7 +23,7 @@ const getInsights = async (req, res) => {
     const income = thisMonthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
     const expense = thisMonthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
 
-    // Rule 1: High spending month
+    // Rule 1: High spending
     if (income > 0 && expense / income > 0.4) {
       insights.push({
         type: 'warning',
@@ -33,14 +31,13 @@ const getInsights = async (req, res) => {
       });
     }
 
-    // Rule 2: Recurring category detection (3 consecutive months)
+    // Rule 2: Recurring category
     const categoryMonths = {};
     transactions.filter(t => t.type === 'expense').forEach(t => {
       const month = new Date(t.date).getMonth();
       if (!categoryMonths[t.category]) categoryMonths[t.category] = new Set();
       categoryMonths[t.category].add(month);
     });
-
     Object.entries(categoryMonths).forEach(([category, months]) => {
       if (months.size >= 3) {
         insights.push({
@@ -62,7 +59,7 @@ const getInsights = async (req, res) => {
       });
     }
 
-    // Monthly trend (last 6 months)
+    // Monthly trend with savings
     const monthlyTrend = [];
     for (let i = 5; i >= 0; i--) {
       const m = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -74,15 +71,37 @@ const getInsights = async (req, res) => {
         return d.getMonth() === month && d.getFullYear() === year;
       });
 
+      const monthIncome = monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+      const monthExpense = monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+      const monthSavings = monthIncome - monthExpense;
+
       monthlyTrend.push({
         month: m.toLocaleString('default', { month: 'short' }),
         year,
-        income: monthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-        expense: monthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+        income: monthIncome,
+        expense: monthExpense,
+        savings: monthSavings
       });
     }
 
-    res.json({ insights, monthlyTrend });
+    // Month over month comparison
+    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthTx = transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === lastMonthDate.getMonth() && d.getFullYear() === lastMonthDate.getFullYear();
+    });
+
+    const lastIncome = lastMonthTx.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const lastExpense = lastMonthTx.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const lastSavings = lastIncome - lastExpense;
+
+    const comparison = {
+      income: { current: income, previous: lastIncome, change: lastIncome > 0 ? Math.round(((income - lastIncome) / lastIncome) * 100) : null },
+      expense: { current: expense, previous: lastExpense, change: lastExpense > 0 ? Math.round(((expense - lastExpense) / lastExpense) * 100) : null },
+      savings: { current: savings, previous: lastSavings, change: lastSavings !== 0 ? Math.round(((savings - lastSavings) / Math.abs(lastSavings)) * 100) : null }
+    };
+
+    res.json({ insights, monthlyTrend, comparison });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

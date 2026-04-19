@@ -4,26 +4,62 @@ const nodemailer = require('nodemailer');
 const User = require('../models/User');
 
 const sendBudgetAlert = async (email, name, category, limitAmount, spent) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+    });
 
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER,
-    to: email,
-    subject: `Budget Exceeded 🚨`,
-    html: `
-      <h2>Hi ${name},</h2>
-      <p>You have exceeded your <strong>${category}</strong> budget.</p>
-      <p>Limit: ₹${limitAmount}</p>
-      <p>Spent: ₹${spent}</p>
-      <p>Take action to control your expenses.</p>
-    `
-  });
+    const exceededBy = spent - limitAmount;
+    const percentage = Math.round((spent / limitAmount) * 100);
+
+    await transporter.sendMail({
+      from: `"Finance Tracker" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: `🚨 Budget Exceeded — ${category}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;border:1px solid #eee;border-radius:10px;overflow:hidden">
+          <div style="background:#ef4444;padding:20px;text-align:center">
+            <h1 style="color:white;margin:0">🚨 Budget Alert</h1>
+          </div>
+          <div style="padding:24px">
+            <h2 style="color:#1f2937">Hi ${name},</h2>
+            <p style="color:#6b7280">You have exceeded your <strong>${category}</strong> budget for this month.</p>
+            
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:20px 0">
+              <table style="width:100%;border-collapse:collapse">
+                <tr>
+                  <td style="padding:8px 0;color:#6b7280">Budget Limit</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#1f2937">₹${limitAmount.toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#6b7280">Total Spent</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#ef4444">₹${spent.toLocaleString()}</td>
+                </tr>
+                <tr style="border-top:1px solid #fecaca">
+                  <td style="padding:8px 0;color:#6b7280">Exceeded By</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#ef4444">₹${exceededBy.toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#6b7280">Usage</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#ef4444">${percentage}% of budget used</td>
+                </tr>
+              </table>
+            </div>
+
+            <p style="color:#6b7280">Please review your spending and take action to control your expenses.</p>
+            <p style="color:#9ca3af;font-size:12px;margin-top:24px">— Finance Tracker</p>
+          </div>
+        </div>
+      `
+    });
+  } catch (err) {
+    console.error('Cron job email error:', err.message);
+  }
 };
 
 // @POST /api/budget

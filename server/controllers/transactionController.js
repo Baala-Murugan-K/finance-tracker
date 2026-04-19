@@ -6,23 +6,55 @@ const nodemailer = require('nodemailer');
 const sendBudgetExceededEmail = async (userId, category, spent, limitAmount, userName, userEmail) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
       }
     });
 
+    const exceededBy = spent - limitAmount;
+    const percentage = Math.round((spent / limitAmount) * 100);
+
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"Finance Tracker" <${process.env.EMAIL_USER}>`,
       to: userEmail,
-      subject: `Budget Exceeded 🚨`,
+      subject: `🚨 Budget Exceeded — ${category}`,
       html: `
-        <h2>Hi ${userName},</h2>
-        <p>You have exceeded your <strong>${category}</strong> budget.</p>
-        <p><strong>Limit:</strong> ₹${limitAmount}</p>
-        <p><strong>Spent:</strong> ₹${spent}</p>
-        <p>Take action to control your expenses.</p>
+        <div style="font-family:Arial,sans-serif;max-width:500px;margin:auto;border:1px solid #eee;border-radius:10px;overflow:hidden">
+          <div style="background:#ef4444;padding:20px;text-align:center">
+            <h1 style="color:white;margin:0">🚨 Budget Alert</h1>
+          </div>
+          <div style="padding:24px">
+            <h2 style="color:#1f2937">Hi ${userName},</h2>
+            <p style="color:#6b7280">You have exceeded your <strong>${category}</strong> budget for this month.</p>
+            
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:20px 0">
+              <table style="width:100%;border-collapse:collapse">
+                <tr>
+                  <td style="padding:8px 0;color:#6b7280">Budget Limit</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#1f2937">₹${limitAmount.toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#6b7280">Total Spent</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#ef4444">₹${spent.toLocaleString()}</td>
+                </tr>
+                <tr style="border-top:1px solid #fecaca">
+                  <td style="padding:8px 0;color:#6b7280">Exceeded By</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#ef4444">₹${exceededBy.toLocaleString()}</td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 0;color:#6b7280">Usage</td>
+                  <td style="padding:8px 0;text-align:right;font-weight:bold;color:#ef4444">${percentage}% of budget used</td>
+                </tr>
+              </table>
+            </div>
+
+            <p style="color:#6b7280">Please review your spending and take action to control your expenses.</p>
+            <p style="color:#9ca3af;font-size:12px;margin-top:24px">— Finance Tracker</p>
+          </div>
+        </div>
       `
     });
 
@@ -31,7 +63,6 @@ const sendBudgetExceededEmail = async (userId, category, spent, limitAmount, use
     console.error('Email alert error:', err.message);
   }
 };
-
 const addTransaction = async (req, res) => {
   try {
     const { type, amount, category, note, date } = req.body;

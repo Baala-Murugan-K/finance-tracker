@@ -28,63 +28,57 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Create Account 🚀</h2>
-        <p className="text-gray-500 mb-6">Start tracking your finances today</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
 
-        {error && <div className="bg-red-100 text-red-600 px-4 py-2 rounded mb-4">{error}</div>}
+        <div className="text-center mb-8">
+          <span className="text-5xl">💰</span>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-2">FinanceTracker</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Take control of your money</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-              placeholder="Your name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-              placeholder="••••••••"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg transition"
-          >
-            {loading ? 'Creating account...' : 'Register'}
-          </button>
-        </form>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-8">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">Create Account 🚀</h2>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Already have an account?{' '}
-          <Link to="/login" className="text-green-500 font-medium hover:underline">Login</Link>
-        </p>
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-4 text-sm">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {[
+              { label: 'Full Name', name: 'name', type: 'text', placeholder: 'Your name' },
+              { label: 'Email', name: 'email', type: 'email', placeholder: 'you@example.com' },
+              { label: 'Password', name: 'password', type: 'password', placeholder: '••••••••' },
+            ].map(field => (
+              <div key={field.name}>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{field.label}</label>
+                <input
+                  type={field.type}
+                  name={field.name}
+                  value={form[field.name]}
+                  onChange={handleChange}
+                  required
+                  placeholder={field.placeholder}
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
+                />
+              </div>
+            ))}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition"
+            >
+              {loading ? 'Creating account...' : 'Register'}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+            Already have an account?{' '}
+            <Link to="/login" className="text-green-500 font-medium hover:underline">Login</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

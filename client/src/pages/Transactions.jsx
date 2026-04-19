@@ -3,6 +3,7 @@ import axios from '../api/axios';
 import exportCSV from '../utils/exportCSV';
 
 const CATEGORIES = ['Food', 'Transport', 'Rent', 'Shopping', 'Health', 'Education', 'Entertainment', 'Salary', 'Freelance', 'Other'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -50,11 +51,8 @@ const Transactions = () => {
   const handleEdit = (tx) => {
     setEditItem(tx);
     setForm({
-      type: tx.type,
-      amount: tx.amount,
-      category: tx.category,
-      note: tx.note,
-      date: new Date(tx.date).toISOString().split('T')[0]
+      type: tx.type, amount: tx.amount, category: tx.category,
+      note: tx.note, date: new Date(tx.date).toISOString().split('T')[0]
     });
     setShowForm(true);
   };
@@ -65,41 +63,65 @@ const Transactions = () => {
     fetchTransactions();
   };
 
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+
   return (
-    <div className="bg-gray-100 min-h-screen p-6">
+    <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6 transition-colors duration-300">
+
+      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Transactions</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Transactions</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Track your income and expenses</p>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => exportCSV(transactions)}
-            className="bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800"
+            className="flex items-center gap-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition"
           >
-            Export CSV
+            📥 Export CSV
           </button>
           <button
             onClick={() => { setShowForm(true); setEditItem(null); }}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+            className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-xl text-sm hover:bg-green-600 transition"
           >
             + Add Transaction
           </button>
         </div>
       </div>
 
+      {/* Summary Strip */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Income</p>
+          <p className="text-lg font-bold text-green-500">+₹{totalIncome.toLocaleString()}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Expense</p>
+          <p className="text-lg font-bold text-red-500">-₹{totalExpense.toLocaleString()}</p>
+        </div>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 text-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400">Net</p>
+          <p className={`text-lg font-bold ${totalIncome - totalExpense >= 0 ? 'text-blue-500' : 'text-red-500'}`}>
+            ₹{(totalIncome - totalExpense).toLocaleString()}
+          </p>
+        </div>
+      </div>
+
       {/* Filters */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-3 mb-6">
         <select
           value={filterMonth}
           onChange={e => setFilterMonth(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 bg-white"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
         >
-          {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
-            <option key={i} value={i + 1}>{m}</option>
-          ))}
+          {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
         </select>
         <select
           value={filterYear}
           onChange={e => setFilterYear(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 bg-white"
+          className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
         >
           {[2024, 2025, 2026].map(y => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -107,62 +129,92 @@ const Transactions = () => {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">{editItem ? 'Edit Transaction' : 'Add Transaction'}</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
+          <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">
+            {editItem ? '✏️ Edit Transaction' : '➕ Add Transaction'}
+          </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <select name="type" value={form.type} onChange={handleChange} className="border border-gray-300 rounded-lg px-3 py-2">
+            <select name="type" value={form.type} onChange={handleChange}
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400">
               <option value="income">Income</option>
               <option value="expense">Expense</option>
             </select>
-            <input type="number" name="amount" value={form.amount} onChange={handleChange} placeholder="Amount" required className="border border-gray-300 rounded-lg px-3 py-2" />
-            <select name="category" value={form.category} onChange={handleChange} className="border border-gray-300 rounded-lg px-3 py-2">
+            <input type="number" name="amount" value={form.amount} onChange={handleChange}
+              placeholder="Amount (₹)" required
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+            <select name="category" value={form.category} onChange={handleChange}
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400">
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input type="text" name="note" value={form.note} onChange={handleChange} placeholder="Note (optional)" className="border border-gray-300 rounded-lg px-3 py-2" />
-            <input type="date" name="date" value={form.date} onChange={handleChange} className="border border-gray-300 rounded-lg px-3 py-2" />
+            <input type="text" name="note" value={form.note} onChange={handleChange}
+              placeholder="Note (optional)"
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
+            <input type="date" name="date" value={form.date} onChange={handleChange}
+              className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" />
             <div className="flex gap-2">
-              <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 flex-1">Save</button>
-              <button type="button" onClick={() => { setShowForm(false); setEditItem(null); }} className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 flex-1">Cancel</button>
+              <button type="submit"
+                className="bg-green-500 text-white px-4 py-2 rounded-xl hover:bg-green-600 flex-1 text-sm transition">
+                Save
+              </button>
+              <button type="button" onClick={() => { setShowForm(false); setEditItem(null); }}
+                className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 flex-1 text-sm transition">
+                Cancel
+              </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Transactions List */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* Transactions Table */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-gray-400">Loading...</div>
+          <div className="p-12 text-center text-gray-400">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div>
+          </div>
         ) : transactions.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">No transactions found for this month.</div>
+          <div className="p-12 text-center">
+            <span className="text-4xl">📭</span>
+            <p className="text-gray-400 mt-2 text-sm">No transactions for this month</p>
+          </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 text-gray-600 text-sm">
-              <tr>
-                <th className="px-6 py-3 text-left">Date</th>
-                <th className="px-6 py-3 text-left">Type</th>
-                <th className="px-6 py-3 text-left">Category</th>
-                <th className="px-6 py-3 text-left">Note</th>
-                <th className="px-6 py-3 text-right">Amount</th>
-                <th className="px-6 py-3 text-center">Actions</th>
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Type</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Note</th>
+                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Amount</th>
+                <th className="px-6 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
               {transactions.map(tx => (
-                <tr key={tx._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-600">{new Date(tx.date).toLocaleDateString()}</td>
+                <tr key={tx._id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {new Date(tx.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${tx.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                      {tx.type}
+                    <span className={`px-2 py-1 rounded-lg text-xs font-semibold ${
+                      tx.type === 'income'
+                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                    }`}>
+                      {tx.type === 'income' ? '↑ Income' : '↓ Expense'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">{tx.category}</td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{tx.note || '-'}</td>
-                  <td className={`px-6 py-4 text-right font-semibold ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{tx.category}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{tx.note || '—'}</td>
+                  <td className={`px-6 py-4 text-right font-bold text-sm ${
+                    tx.type === 'income' ? 'text-green-500' : 'text-red-500'
+                  }`}>
                     {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <button onClick={() => handleEdit(tx)} className="text-blue-500 hover:text-blue-700 mr-3 text-sm">Edit</button>
-                    <button onClick={() => handleDelete(tx._id)} className="text-red-500 hover:text-red-700 text-sm">Delete</button>
+                    <button onClick={() => handleEdit(tx)}
+                      className="text-blue-500 hover:text-blue-700 text-sm mr-3 font-medium">Edit</button>
+                    <button onClick={() => handleDelete(tx._id)}
+                      className="text-red-500 hover:text-red-700 text-sm font-medium">Delete</button>
                   </td>
                 </tr>
               ))}

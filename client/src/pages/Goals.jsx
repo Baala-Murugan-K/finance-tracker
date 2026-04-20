@@ -90,7 +90,7 @@ const Goals = () => {
 
       {/* Summary Strip */}
       {goals.length > 0 && (
-        <div className="grid grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 text-center">
             <p className="text-xs text-gray-500 dark:text-gray-400">Total Goals</p>
             <p className="text-2xl font-bold text-gray-800 dark:text-white">{goals.length}</p>

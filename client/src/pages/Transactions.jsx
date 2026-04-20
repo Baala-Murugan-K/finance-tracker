@@ -177,7 +177,8 @@ const Transactions = () => {
             <p className="text-gray-400 mt-2 text-sm">No transactions for this month</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
+            <table className="w-full min-w-max">
             <thead>
               <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Date</th>
@@ -219,7 +220,8 @@ const Transactions = () => {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         )}
       </div>
     </div>

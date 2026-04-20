@@ -7,6 +7,7 @@ const Register = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -27,17 +28,26 @@ const Register = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center">
+      <span className="text-6xl mb-4">💰</span>
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">FinanceTracker</h1>
+      <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Take control of your money</p>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+      <p className="text-gray-400 text-sm mt-3">Creating your account...</p>
+    </div>
+  );
 
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4 transition-colors duration-300">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <span className="text-5xl">💰</span>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-2">FinanceTracker</h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Take control of your money</p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-800 p-6 md:p-8">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">Create Account 🚀</h2>
 
           {error && (
@@ -47,30 +57,35 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {[
-              { label: 'Full Name', name: 'name', type: 'text', placeholder: 'Your name' },
-              { label: 'Email', name: 'email', type: 'email', placeholder: 'you@example.com' },
-              { label: 'Password', name: 'password', type: 'password', placeholder: '••••••••' },
-            ].map(field => (
-              <div key={field.name}>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{field.label}</label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+              <input type="text" name="name" value={form.name} onChange={handleChange} required
+                placeholder="Your name"
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+              <input type="email" name="email" value={form.email} onChange={handleChange} required
+                placeholder="you@example.com"
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+              <div className="relative">
                 <input
-                  type={field.type}
-                  name={field.name}
-                  value={form[field.name]}
-                  onChange={handleChange}
-                  required
-                  placeholder={field.placeholder}
-                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-400 transition"
-                />
+                  type={showPassword ? 'text' : 'password'}
+                  name="password" value={form.password} onChange={handleChange} required
+                  placeholder="••••••••"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-white rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-green-400 transition" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-lg">
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
               </div>
-            ))}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition"
-            >
-              {loading ? 'Creating account...' : 'Register'}
+            </div>
+            <button type="submit"
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition">
+              Register
             </button>
           </form>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from '../api/axios';
+import AiAdvisor from "../components/AiAdvisor";
 import { useAuth } from '../context/AuthContext';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -83,6 +84,10 @@ const Dashboard = () => {
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
     </div>
   );
+
+  // Build categoryBreakdown object for AI
+  const categoryBreakdown = {};
+  categoryData.forEach(({ name, value }) => { categoryBreakdown[name] = value; });
 
   return (
     <div className="bg-gray-50 dark:bg-gray-950 min-h-screen p-6 transition-colors duration-300">
@@ -200,7 +205,7 @@ const Dashboard = () => {
 
       {/* Insights */}
       {insights.length > 0 && (
-        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-8">
           <h2 className="text-base font-semibold text-gray-700 dark:text-gray-300 mb-4">💡 Financial Insights</h2>
           <div className="space-y-3">
             {insights.map((insight, i) => (
@@ -216,6 +221,18 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {/* AI Finance Advisor */}
+      <AiAdvisor
+        financeData={{
+          income: summary.totalIncome,
+          expenses: summary.totalExpense,
+          savings: summary.savings,
+          categories: categoryBreakdown,
+          month: `${MONTHS[month - 1]} ${year}`
+        }}
+      />
+
     </div>
   );
 };

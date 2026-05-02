@@ -12,7 +12,7 @@ import Goals from './pages/Goals';
 import Profile from './pages/Profile';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-
+import Chatbot from './pages/Chatbot';
 function App() {
   return (
     <ThemeProvider>
@@ -30,6 +30,7 @@ function App() {
               <Route path="/budget" element={<PrivateRoute><Budget /></PrivateRoute>} />
               <Route path="/goals" element={<PrivateRoute><Goals /></PrivateRoute>} />
               <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+              <Route path="/chatbot" element={<PrivateRoute><Chatbot /></PrivateRoute>} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>

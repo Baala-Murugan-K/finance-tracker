@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import axios from '../api/axios';
-import AiAdvisor from "../components/AiAdvisor";
 import { useAuth } from '../context/AuthContext';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -221,18 +220,6 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-
-      {/* AI Finance Advisor */}
-      <AiAdvisor
-        financeData={{
-          income: summary.totalIncome,
-          expenses: summary.totalExpense,
-          savings: summary.savings,
-          categories: categoryBreakdown,
-          month: `${MONTHS[month - 1]} ${year}`
-        }}
-      />
-
     </div>
   );
 };

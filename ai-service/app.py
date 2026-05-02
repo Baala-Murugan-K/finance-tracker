@@ -22,26 +22,38 @@ def get_advice():
         data = request.json
         question = data.get("question", "")
         finance_data = data.get("financeData", {})
+        history = data.get("history", [])
 
         if not question:
             return jsonify({"error": "Question is required"}), 400
 
-        prompt = f"""
-You are a personal finance advisor. Analyze the user's actual financial data and answer their question with specific, practical advice.
+        system_prompt = f"""You are FinBot, a friendly and expert personal finance coach and advisor. 
+You have access to the user's real financial data and give specific, actionable advice based on their numbers.
+Always be encouraging but honest. Use Indian Rupee (₹) for amounts.
+Keep responses concise (3-5 sentences max) unless the user asks for detailed explanation.
 
-User's Financial Data:
-- Total Income: ₹{finance_data.get('income', 0)}
-- Total Expenses: ₹{finance_data.get('expenses', 0)}
-- Savings: ₹{finance_data.get('savings', 0)}
+User's Current Financial Data ({finance_data.get('month', 'Current Month')}):
+- Total Income: ₹{finance_data.get('income', 0):,}
+- Total Expenses: ₹{finance_data.get('expenses', 0):,}
+- Savings: ₹{finance_data.get('savings', 0):,}
+- Savings Rate: {finance_data.get('savingsRate', 0)}%
 - Category Breakdown: {finance_data.get('categories', {})}
-- Month: {finance_data.get('month', 'Current')}
 
-User Question: {question}
+Previous Month Data ({finance_data.get('previousMonth', {}).get('month', 'Last Month')}):
+- Income: ₹{finance_data.get('previousMonth', {}).get('income', 0):,}
+- Expenses: ₹{finance_data.get('previousMonth', {}).get('expenses', 0):,}
+- Savings: ₹{finance_data.get('previousMonth', {}).get('savings', 0):,}
+- Category Breakdown: {finance_data.get('previousMonth', {}).get('categories', {})}
 
-Give specific advice based on their actual numbers. Keep it concise and actionable.
-        """
+Role: You are a personal finance coach. Give specific advice based on their actual numbers.
+Never give generic advice — always reference their real data."""
 
-        print("API KEY LOADED:", GROQ_API_KEY[:10] if GROQ_API_KEY else "NOT FOUND")
+        messages = [{"role": "system", "content": system_prompt}]
+
+        for msg in history[-6:]:
+            messages.append({"role": msg["role"], "content": msg["content"]})
+
+        messages.append({"role": "user", "content": question})
 
         response = requests.post(
             GROQ_URL,
@@ -51,24 +63,21 @@ Give specific advice based on their actual numbers. Keep it concise and actionab
             },
             json={
                 "model": "llama-3.3-70b-versatile",
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": 500
+                "messages": messages,
+                "max_tokens": 500,
+                "temperature": 0.7
             }
         )
-
-        print("STATUS CODE:", response.status_code)
-        print("FULL RESPONSE:", response.json())
 
         result = response.json()
 
         if "choices" not in result:
-            return jsonify({"error": result}), 500
+            return jsonify({"error": "AI service error"}), 500
 
         advice = result["choices"][0]["message"]["content"]
         return jsonify({"advice": advice})
 
     except Exception as e:
-        print("EXCEPTION:", str(e))
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":

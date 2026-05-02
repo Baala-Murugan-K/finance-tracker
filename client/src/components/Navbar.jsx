@@ -20,6 +20,7 @@ const Navbar = () => {
     { to: '/transactions', label: 'Transactions' },
     { to: '/budget', label: 'Budget' },
     { to: '/goals', label: 'Goals' },
+    { to: '/chatbot', label: '🤖 FinBot' },
   ];
 
   return (
